@@ -186,6 +186,97 @@ def test_delete_by_primary_key():
     print(f"Test Passed: Temporary customer {temp_id} was successfully deleted.")
 
 
+def test_update_by_template():
+    service = _make_service()
+    temp_id = 1111  # Using a unique integer ID
+
+    # 1. SETUP: Create a unique record to target
+    dummy_payload = {
+        "customerNumber": temp_id,
+        "customerName": "Template Update Inc",
+        "contactLastName": "Template",
+        "contactFirstName": "User",
+        "phone": "555-9999",
+        "addressLine1": "999 Template Way",
+        "city": "UpdateCity",  # Unique city for targeting
+        "country": "TestLand"  # Unique country for targeting
+    }
+    service.create(dummy_payload)
+
+    try:
+        # 2. TEST: Use a template to find this specific record and update it
+        # The template acts like a WHERE clause
+        target_template = {
+            "city": "UpdateCity",
+            "country": "TestLand"
+        }
+
+        # The new values we want to set
+        new_values = {
+            "contactFirstName": "Template-Success",
+            "phone": "000-0000"
+        }
+
+        # Execute the update
+        rows_affected = service.updateByTemplate(target_template, new_values)
+
+        # 3. ASSERTIONS
+        assert rows_affected >= 1, "Should have updated at least one row"
+
+        # Verify the data was actually changed in the DB
+        verified_row = service.retrieveByPrimaryKey(str(temp_id))
+        assert verified_row["contactFirstName"] == "Template-Success"
+        assert verified_row["phone"] == "000-0000"
+        # Ensure targeted fields that weren't in 'new_values' stayed the same
+        assert verified_row["city"] == "UpdateCity"
+
+    finally:
+        # 4. TEARDOWN: Cleanup the database
+        service.deleteByPrimaryKey(str(temp_id))
+        #print(f"Test Passed: updateByTemplate successful for customer {temp_id}")
+
+def test_delete_by_template():
+    service = _make_service()
+
+    # 1. SETUP: Create a unique record to delete
+    # Using a high ID and unique city/country combo
+    temp_id = 5555
+    dummy_payload = {
+        "customerNumber": temp_id,
+        "customerName": "Delete Template Corp",
+        "contactLastName": "Template",
+        "contactFirstName": "DeleteTest",
+        "phone": "555-0000",
+        "addressLine1": "555 Delete Ave",
+        "city": "GhostCity",
+        "country": "VoidLand"
+    }
+
+    # Ensure it's in the DB
+    service.create(dummy_payload)
+    assert service.retrieveByPrimaryKey(str(temp_id)) != {}
+
+    try:
+        # 2. TEST: Delete using a template (simulating a composite key scenario)
+        template = {
+            "city": "GhostCity",
+            "country": "VoidLand"
+        }
+
+        rows_deleted = service.deleteByTemplate(template)
+
+        # 3. ASSERTIONS
+        assert rows_deleted >= 1, "Expected at least 1 row to be deleted"
+
+        # 4. VERIFY: Ensure the specific record is gone
+        final_check = service.retrieveByPrimaryKey(str(temp_id))
+        assert final_check == {}, "Record should not exist after deleteByTemplate"
+
+    finally:
+        # Emergency cleanup just in case delete failed
+        service.deleteByPrimaryKey(str(temp_id))
+        #print(f"Test Passed: deleteByTemplate successfully removed customer {temp_id}")
+
 if __name__ == "__main__":
     test_functions = [
         test_retrieve_by_primary_key,
@@ -193,7 +284,8 @@ if __name__ == "__main__":
         test_create,
         test_update_by_primary_key,
         test_delete_by_primary_key,
-        test_retrieve_by_primary_key_not_found()
+        test_retrieve_by_primary_key_not_found,
+        test_update_by_template
     ]
 
     for test_func in test_functions:

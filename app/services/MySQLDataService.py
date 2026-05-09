@@ -90,3 +90,39 @@ class MySQLDataService(AbstractBaseDataService):
             sql = text(f"DELETE FROM {self._table_name} WHERE {self._primary_key_field} = :pk")
             result = session.execute(sql, {"pk": primary_key})
             return result.rowcount
+
+    # Added to support put on composite primary key in OrderDetailsResource
+    def updateByTemplate(self, template: dict, new_values: dict) -> int:
+        if not template or not new_values:
+            return 0
+
+        set_clause = ", ".join([f"{k} = :{k}" for k in new_values.keys()])
+        where_clause = " AND ".join([f"{k} = :w_{k}" for k in template.keys()])
+
+        sql_str = f"UPDATE {self._table_name} SET {set_clause} WHERE {where_clause}"
+
+        # Combine parameters into one dictionary for SQLAlchemy named parameters
+        # We use a prefix for 'where' clause keys to avoid collisions if the same
+        # column is in both the SET and WHERE parts.
+        params = {**new_values, **{f"w_{k}": v for k, v in template.items()}}
+
+        with self.get_session() as session:
+            # Wrap the string in text()
+            result = session.execute(text(sql_str), params)
+            session.commit()  # Ensure you commit the transaction
+            return result.rowcount
+
+    def deleteByTemplate(self, template: dict) -> int:
+        """Deletes rows that match the provided template."""
+        if not template:
+            return 0
+
+        # Build WHERE clause: WHERE key1 = :key1 AND key2 = :key2
+        where_clause = " AND ".join([f"{k} = :{k}" for k in template.keys()])
+
+        sql_str = f"DELETE FROM {self._table_name} WHERE {where_clause}"
+
+        with self.get_session() as session:
+            result = session.execute(text(sql_str), template)
+            session.commit()
+            return result.rowcount
