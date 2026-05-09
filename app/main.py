@@ -27,6 +27,7 @@ from dotenv import load_dotenv
 
 # Load env variables
 load_dotenv()
+# .env only contains MYSQL_ROOT_USER and MYSQL_ROOT_PASSWORD in original setup
 db_user = os.getenv("MYSQL_ROOT_USER")
 db_pass = os.getenv("MYSQL_ROOT_PASSWORD")
 db_host = os.getenv("MYSQL_HOST", "localhost")
