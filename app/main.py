@@ -12,6 +12,8 @@ from app.resources.CustomerResource import CustomerResource, CustomerModel, Cust
 from app.resources.OrderResource import OrderResource, OrderModel, OrderCollection
 from app.resources.OrderDetailsResource import OrderDetailsResource, OrderDetailsModel, OrderDetailsCollection
 
+# Classicmodels must be loaded into MySQL: .sql file is in data folder
+
 def _get_app_name() -> str:
     return os.getenv("APP_NAME", "ClassicModels API")
 
