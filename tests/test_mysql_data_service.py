@@ -21,7 +21,7 @@ def _make_service():
     db_url = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 
     config = {
-        "mysql_url": db_url,
+        "db_url": db_url,
         "table_name": "customers",
         "primary_key_field": "customerNumber"
     }

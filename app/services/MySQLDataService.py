@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-#import uuid
-#from pathlib import Path
-
 from .AbstractBaseDataService import AbstractBaseDataService
 
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker#, Session
+from sqlalchemy.orm import sessionmaker
 
 
 class MySQLDataService(AbstractBaseDataService):
@@ -24,7 +21,7 @@ class MySQLDataService(AbstractBaseDataService):
         self._table_name = str(config["table_name"])
 
         self._engine = create_engine(
-            config["mysql_url"],
+            config["db_url"],
             pool_pre_ping=True,
             pool_recycle=3600
         )

@@ -7,3 +7,4 @@ httpx>=0.27
 sqlalchemy
 pymysql
 python-dotenv
+pydantic
